@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NovelForge 网络配置测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .config-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌐 NovelForge 网络配置测试</h1>
+        
+        <div class="config-info">
+            <h3>📋 当前配置信息</h3>
+            <div id="config-info">
+                加载中...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 环境变量检测</h3>
+            <button onclick="testEnvVar()">检测 VITE_API_BASE_URL</button>
+            <div id="env-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 后端连接测试</h3>
+            <button onclick="testBackend()">测试后端连接</button>
+            <button onclick="testProjects()">测试项目列表API</button>
+            <button onclick="testAISchemas()">测试AI配置API</button>
+            <div id="backend-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📍 网络信息</h3>
+            <button onclick="showNetworkInfo()">显示网络信息</button>
+            <div id="network-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔒 CSP配置检测</h3>
+            <button onclick="testCSPConfig()">测试CSP配置</button>
+            <div id="csp-result" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 快速配置</h3>
+            <p>根据你的网络环境选择合适的配置：</p>
+            <button onclick="setConfig('auto')">自动检测模式</button>
+            <button onclick="setConfig('localhost')">本地开发模式</button>
+            <button onclick="setConfig('custom')">自定义IP地址</button>
+            <div id="config-result" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 显示基础配置信息
+        function showConfigInfo() {
+            const configInfo = document.getElementById('config-info');
+            const currentUrl = window.location.href;
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            
+            // 获取环境变量（通过window对象暴露的变量）
+            const envUrl = window.VITE_API_BASE_URL || '未设置';
+            
+            let html = `
+                <strong>当前页面地址:</strong> ${currentUrl}<br>
+                <strong>主机名:</strong> ${hostname}<br>
+                <strong>端口:</strong> ${port}<br>
+                <strong>环境变量:</strong> ${envUrl}<br>
+            `;
+            
+            configInfo.innerHTML = html;
+        }
+
+        // 测试环境变量
+        function testEnvVar() {
+            const result = document.getElementById('env-result');
+            const envUrl = window.VITE_API_BASE_URL;
+            
+            result.style.display = 'block';
+            
+            if (envUrl) {
+                result.className = 'result success';
+                result.textContent = `✅ 检测到环境变量: ${envUrl}`;
+            } else {
+                result.className = 'result info';
+                result.textContent = `ℹ️ 未设置 VITE_API_BASE_URL，将使用自动检测`;
+            }
+        }
+
+        // 测试后端连接
+        async function testBackend() {
+            const result = document.getElementById('backend-result');
+            result.style.display = 'block';
+            result.className = 'result info';
+            result.textContent = '正在测试后端连接...';
+
+            try {
+                // 获取实际的baseURL
+                const baseUrl = await getActualBaseUrl();
+                result.textContent = `正在连接: ${baseUrl}/api/health`;
+                
+                const response = await fetch(`${baseUrl}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent = `✅ 后端连接成功！\n状态: ${data.status}\n消息: ${data.message || '无'}`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ 后端连接失败！\nHTTP状态: ${response.status}\n错误: ${data.message || '未知错误'}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 连接错误！\n${error.message}\n\n可能的原因：\n1. 后端服务未启动\n2. IP地址配置错误\n3. 防火墙阻止连接\n4. CSP策略限制`;
+            }
+        }
+
+        // 测试项目列表API
+        async function testProjects() {
+            const result = document.getElementById('backend-result');
+            result.style.display = 'block';
+            result.className = 'result info';
+            result.textContent = '正在测试项目列表API...';
+
+            try {
+                const baseUrl = await getActualBaseUrl();
+                const response = await fetch(`${baseUrl}/api/projects`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    result.className = 'result success';
+                    result.textContent = `✅ 项目列表API正常！\n项目数量: ${data.data.length}\n第一个项目: ${data.data[0]?.name || '无'}`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ 项目列表API失败！\n状态: ${data.status}\n消息: ${data.message || '未知错误'}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ API调用失败！\n${error.message}`;
+            }
+        }
+
+        // 测试AI配置API
+        async function testAISchemas() {
+            const result = document.getElementById('backend-result');
+            result.style.display = 'block';
+            result.className = 'result info';
+            result.textContent = '正在测试AI配置API...';
+
+            try {
+                const baseUrl = await getActualBaseUrl();
+                const response = await fetch(`${baseUrl}/api/ai/schemas`);
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    result.className = 'result success';
+                    result.textContent = `✅ AI配置API正常！\n模式数量: ${Object.keys(data.data).length}\n可用模型: ${data.data.models?.join(', ') || '无'}`;
+                } else {
+                    result.className = 'result error';
+                    result.textContent = `❌ AI配置API失败！\n状态: ${data.status}\n消息: ${data.message || '未知错误'}`;
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ API调用失败！\n${error.message}`;
+            }
+        }
+
+        // 获取实际的baseURL（模拟request.ts中的逻辑）
+        async function getActualBaseUrl() {
+            const envUrl = window.VITE_API_BASE_URL;
+            
+            if (envUrl && envUrl !== 'auto') {
+                return envUrl;
+            }
+            
+            // 自动检测逻辑
+            if (typeof window !== 'undefined' && window.location) {
+                const hostname = window.location.hostname;
+                if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                    return `http://${hostname}:8000`;
+                }
+            }
+            
+            return 'http://127.0.0.1:8000';
+        }
+
+        // 显示网络信息
+        function showNetworkInfo() {
+            const result = document.getElementById('network-result');
+            result.style.display = 'block';
+            
+            const info = {
+                当前主机名: window.location.hostname,
+                当前端口: window.location.port,
+                当前协议: window.location.protocol,
+                用户代理: navigator.userAgent.substring(0, 100) + '...',
+                预计后端地址: getActualBaseUrl(),
+                环境变量: window.VITE_API_BASE_URL || '未设置'
+            };
+            
+            result.className = 'result info';
+            result.textContent = Object.entries(info).map(([key, value]) => `${key}: ${value}`).join('\n');
+        }
+
+        // 设置配置（演示功能）
+        function setConfig(type) {
+            const result = document.getElementById('config-result');
+            result.style.display = 'block';
+            
+            let message = '';
+            
+            switch(type) {
+                case 'auto':
+                    message = `🤖 自动检测模式说明：\n\n系统会根据当前访问的IP地址自动调整后端地址。\n当前访问IP: ${window.location.hostname}\n预计后端地址: ${getActualBaseUrl()}\n\n要使用此模式，请在 .env 文件中设置：\nVITE_API_BASE_URL=auto`;
+                    break;
+                case 'localhost':
+                    message = `🏠 本地开发模式说明：\n\n强制使用本地地址访问后端。\n后端地址: http://127.0.0.1:8000\n\n要使用此模式，请在 .env 文件中设置：\nVITE_API_BASE_URL=http://127.0.0.1:8000`;
+                    break;
+                case 'custom':
+                    const customIp = prompt('请输入后端服务器的IP地址（如：192.168.1.100）:', '192.168.12.109');
+                    if (customIp) {
+                        message = `🔧 自定义IP模式说明：\n\n手动设置后端服务器地址。\n后端地址: http://${customIp}:8000\n\n要使用此模式，请在 .env 文件中设置：\nVITE_API_BASE_URL=http://${customIp}:8000`;
+                    } else {
+                        message = '❌ 已取消自定义IP设置';
+                    }
+                    break;
+            }
+            
+            result.className = 'result info';
+            result.textContent = message;
+        }
+
+        // 测试CSP配置
+        function testCSPConfig() {
+            const result = document.getElementById('csp-result');
+            result.style.display = 'block';
+            result.className = 'result info';
+            result.textContent = '正在检测CSP配置...';
+
+            try {
+                // 检查是否存在CSP meta标签
+                const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+                if (cspMeta) {
+                    result.className = 'result success';
+                    result.textContent = `✅ 检测到CSP meta标签\n内容: ${cspMeta.content}`;
+                } else {
+                    result.className = 'result info';
+                    result.textContent = 'ℹ️ 未检测到CSP meta标签，请确保服务器响应头中包含CSP策略';
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ CSP检测失败: ${error.message}`;
+            }
+        }
+
+        // 页面加载时显示配置信息
+        showConfigInfo();
+    </script>
+</body>
+</html>

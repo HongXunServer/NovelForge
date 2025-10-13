@@ -50,7 +50,15 @@ export function generateContinuationStreaming(
     onClose: () => void,
     onError?: (err: any) => void
 ) {
-  const API_BASE_URL = 'http://127.0.0.1:8000/api'
+  function getApiBaseUrl(): string {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+    (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+      ? `http://${window.location.hostname}:8000` 
+      : 'http://127.0.0.1:8000')
+  return `${baseUrl}/api`
+}
+
+const API_BASE_URL = getApiBaseUrl()
   const controller = new AbortController()
   const signal = controller.signal
   
@@ -163,7 +171,15 @@ export function generateAssistantChatStreaming(
   onClose: () => void,
   onError?: (err: any) => void
 ) {
-  const API_BASE_URL = 'http://127.0.0.1:8000/api'
+  function getApiBaseUrl(): string {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 
+    (typeof window !== 'undefined' && window.location && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+      ? `http://${window.location.hostname}:8000` 
+      : 'http://127.0.0.1:8000')
+  return `${baseUrl}/api`
+}
+
+const API_BASE_URL = getApiBaseUrl()
   const controller = new AbortController()
   const signal = controller.signal
 

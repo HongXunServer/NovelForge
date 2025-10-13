@@ -2,7 +2,39 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 import { ElMessage, ElLoading } from 'element-plus'
 
 // 后端API的基础URL
-export const BASE_URL = 'http://127.0.0.1:8000'
+// 支持通过环境变量配置，方便局域网访问
+function getBaseUrl(): string {
+  const envUrl = import.meta.env.VITE_API_BASE_URL
+  
+  // 如果环境变量设置为auto，启用智能检测
+  if (envUrl === 'auto') {
+    return detectBackendUrl()
+  }
+  
+  // 如果设置了具体的环境变量地址，直接使用
+  if (envUrl && envUrl !== 'auto') {
+    return envUrl
+  }
+  
+  // 自动检测逻辑
+  return detectBackendUrl()
+}
+
+// 智能检测后端地址
+function detectBackendUrl(): string {
+  // 如果是Web环境且不是localhost，尝试使用当前主机
+  if (typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return `http://${hostname}:8000`
+    }
+  }
+  
+  // 默认回退到localhost
+  return 'http://127.0.0.1:8000'
+}
+
+export const BASE_URL = getBaseUrl()
 
 // API响应格式，与后端约定一致
 interface ApiResponse<T> {
