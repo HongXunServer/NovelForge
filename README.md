@@ -1,7 +1,7 @@
-<div align="center">
-项目原地址:https://github.com/RhythmicWave/NovelForge
-# NovelForge
 
+<div align="center">
+ NovelForge
+项目原地址:https://github.com/RhythmicWave/NovelForge
 <p><strong>新一代 AI 长篇小说创作引擎</strong></p>
 
 <p>
