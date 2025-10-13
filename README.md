@@ -1,5 +1,5 @@
 <div align="center">
-
+项目原地址:https://github.com/RhythmicWave/NovelForge
 # NovelForge
 
 <p><strong>新一代 AI 长篇小说创作引擎</strong></p>
@@ -496,8 +496,3 @@ NovelForge 目前仍处于迭代的早期阶段，作者深知该项目在创作
 - [ ] **增强知识图谱注入**: 实现更智能、更自动化的关系与事实注入机制，进一步降低 AI 幻觉。
 - [ ] **优化创作流程**: 提供更灵活、更强大的流程编排与引导功能，适应不同的创作风格。
 - [ ] **提升交互体验**: 持续打磨 UI/UX，使其更直观、更高效，减少不必要的操作。
-
-
-=======
-# NovelForge
->>>>>>> e02db4b1766be26c23fa046c0e99b0274a76f4cb
