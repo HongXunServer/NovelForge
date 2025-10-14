@@ -4,7 +4,7 @@
  */
 
 // 检测是否为Web环境
-export const isWeb = typeof window !== 'undefined' && (window as any).IS_WEB === true
+export const isWeb = typeof window !== 'undefined' && !((window as any).electronAPI)
 
 // 检测是否为Electron环境
 export const isElectron = typeof window !== 'undefined' && !!(window as any).electronAPI

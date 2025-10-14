@@ -32,7 +32,13 @@ function handleLogoClick() {
 const isLogoClickable = computed(() => currentView.value !== 'dashboard')
 
 function openIdeasWorkbench() {
-  // 直接调用主进程打开新窗口，避免当前窗口路由或状态变化引起的闪烁
+  // Web环境下直接通过hash路由跳转到灵感工作台
+  if (window.IS_WEB) {
+    window.location.hash = '#/ideas-home'
+    return
+  }
+  
+  // Electron环境下调用主进程打开新窗口
   // @ts-ignore
   window.api?.openIdeasHome?.()
 }
@@ -89,4 +95,4 @@ function openIdeasWorkbench() {
   display: flex;
   gap: 15px;
 }
-</style> 
+</style>
